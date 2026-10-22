@@ -1,4 +1,4 @@
-// NetBanking — Sparkasse mk corporate portal in a WebKit window with native
+// ProKlik — NLB ProKlik corporate portal in a WebKit window with native
 // USB-token signing (replaces the Windows-only "Aseba Crypto Signer").
 //
 // The portal's JS calls window.TokenSigning().certAndSign({type, hex}, opts) where
@@ -10,7 +10,7 @@ import Cocoa
 import WebKit
 import CryptoKit
 
-let PORTAL_URL = URL(string: "https://www.netbanking.mk/Stopanstvo/Account/Login")!
+let PORTAL_URL = URL(string: "https://www.nlbproklik.com.mk/LoginModule/LoginUP.aspx?ReturnUrl=%2fdefault.aspx")!
 
 // DER prefix: SEQUENCE { SEQUENCE { OID 1.3.14.3.2.26 (sha1), NULL }, OCTET STRING }
 let SHA1_DIGESTINFO_PREFIX: [UInt8] = [
@@ -24,7 +24,7 @@ var pkcs11Module: String = ""
 var pkcs11ToolPath: String = ""
 
 func fail(_ msg: String) -> NSError {
-    NSError(domain: "NetBanking", code: 1,
+    NSError(domain: "ProKlik", code: 1,
             userInfo: [NSLocalizedDescriptionKey: msg])
 }
 
@@ -52,7 +52,7 @@ func resolveTools() throws {
         throw fail("pkcs11-tool not found (install with:  brew install opensc)")
     }
     // Module: env override, else probe candidates for one that sees a token.
-    if let env = ProcessInfo.processInfo.environment["NB_PKCS11_MODULE"] {
+    if let env = ProcessInfo.processInfo.environment["PROKLIK_PKCS11_MODULE"] {
         pkcs11Module = env
         return
     }
@@ -75,17 +75,17 @@ func resolveTools() throws {
     }
     throw fail("No PKCS#11 middleware sees a token.\nPlug in the USB token; if it still "
              + "isn't found, install the SafeNet Authentication Client (or your token's "
-             + "macOS driver) or set NB_PKCS11_MODULE.")
+             + "macOS driver) or set PROKLIK_PKCS11_MODULE.")
 }
 
-// MARK: - Token leaf certificate via the bundled nb-cert CLI
+// MARK: - Token leaf certificate via the bundled proklik-cert CLI
 
 func readLeafCertB64() throws -> String {
     let exec = Bundle.main.executableURL!.deletingLastPathComponent()
-    let cert = exec.appendingPathComponent("nb-cert")
+    let cert = exec.appendingPathComponent("proklik-cert")
     let proc = Process()
     proc.executableURL = FileManager.default.fileExists(atPath: cert.path)
-        ? cert : URL(fileURLWithPath: "/usr/local/bin/nb-cert")
+        ? cert : URL(fileURLWithPath: "/usr/local/bin/proklik-cert")
     proc.arguments = [pkcs11Module]
     let pipe = Pipe()
     proc.standardOutput = pipe
@@ -119,8 +119,8 @@ func askPin() -> String? {
 
 func tokenSign(_ message: Data, pin: String) throws -> Data {
     let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
-    let inFile = tmp.appendingPathComponent("nb_msg.bin")
-    let outFile = tmp.appendingPathComponent("nb_sig.bin")
+    let inFile = tmp.appendingPathComponent("proklik_msg.bin")
+    let outFile = tmp.appendingPathComponent("proklik_sig.bin")
     try message.write(to: inFile)
     try? FileManager.default.removeItem(at: outFile)
 
@@ -331,7 +331,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let win = NSWindow(contentRect: NSRect(x: 150, y: 60, width: 1180, height: 820),
                            styleMask: [.titled, .closable, .resizable, .miniaturizable],
                            backing: .buffered, defer: false)
-        win.title = "Sparkasse Corporate — netbanking.mk"
+        win.title = "NLB ProKlik — nlbproklik.com.mk"
 
         let config = WKWebViewConfiguration()
         let script = WKUserScript(source: TOKEN_SIGNING_JS,

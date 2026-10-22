@@ -10,7 +10,7 @@ NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
 let ctx = NSGraphicsContext.current!.cgContext
 
-// Background: vertical gradient in Sparkasse-like blues, rounded corners.
+// Background: vertical gradient in NLB-style blues, rounded corners.
 NSColor(srgbRed: 0.008, green: 0.286, blue: 0.482, alpha: 1).set()
 let bg = NSBezierPath(roundedRect: NSRect(x: 64, y: 64, width: 896, height: 896),
                       xRadius: 200, yRadius: 200)

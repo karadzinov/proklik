@@ -1,9 +1,9 @@
-// nb-cert — reads the signer's leaf certificate off a PKCS#11 token.
-// Usage: nb-cert [--all] <path-to-pkcs11-module>
+// proklik-cert — reads the signer's leaf certificate off a PKCS#11 token.
+// Usage: proklik-cert [--all] <path-to-pkcs11-module>
 // Prints base64 DER of the chosen leaf certificate to stdout.
 //
 // Leaf selection: a candidate must contain the first keyword and none of the
-// remaining keywords (NB_CERT_SUBJECT env overrides; default assumes a
+// remaining keywords (PROKLIK_CERT_SUBJECT env overrides; default assumes a
 // qualified personal certificate with a serialNumber= attribute and no CA
 // markers). Falls back to the first certificate found.
 
@@ -33,7 +33,7 @@ func err(_ msg: String) -> Never {
 }
 
 func keywords() -> (inKeywords: [String], notKeywords: [String]) {
-    let s = ProcessInfo.processInfo.environment["NB_CERT_SUBJECT"]
+    let s = ProcessInfo.processInfo.environment["PROKLIK_CERT_SUBJECT"]
     let parts = (s ?? "serialNumber=,CA").split(separator: ",").map(String.init)
     if let first = parts.first {
         return ([first], Array(parts.dropFirst()))
@@ -108,7 +108,7 @@ func certs(_ modulePath: String) -> [Data] {
     // size query (nil buffer) hasn't run first.
     _ = cSlots(1, nil, &slotCount)
     let listRv = cSlots(1, &slots, &slotCount)
-    if ProcessInfo.processInfo.environment["NB_DEBUG"] != nil {
+    if ProcessInfo.processInfo.environment["PROKLIK_DEBUG"] != nil {
         FileHandle.standardError.write("debug: init=\(rv) list=\(listRv) slots=\(slotCount)\n".data(using: .utf8)!)
     }
     guard listRv == CKR_OK, slotCount > 0 else {
@@ -153,7 +153,7 @@ func certs(_ modulePath: String) -> [Data] {
 let args = CommandLine.arguments
 let all = args.contains("--all")
 guard let module = args.last(where: { !$0.hasPrefix("-") }) else {
-    err("usage: nb-cert [--all] <path-to-pkcs11-module>")
+    err("usage: proklik-cert [--all] <path-to-pkcs11-module>")
 }
 
 let list = certs(module)

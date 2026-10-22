@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 cd "$(dirname "$0")"
-APP=NetBanking.app
+APP=ProKlik.app
 TOOLDIR="$APP/Contents/MacOS/tools"
 
 # ---- regenerate icon if not present (needs only swift + sips + iconutil) ----
@@ -42,7 +42,7 @@ codesign -s - --force "$TOOLDIR/libopensc.13.dylib"
 codesign -s - --force "$TOOLDIR/pkcs11-tool"
 
 # ---- build ----
-rm -rf "$APP/Contents/MacOS/NetBanking"   # fresh compile
+rm -rf "$APP/Contents/MacOS/ProKlik"   # fresh compile
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp AppIcon.icns "$APP/Contents/Resources/"
 cat > "$APP/Contents/Info.plist" <<'PLIST'
@@ -50,10 +50,10 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleExecutable</key><string>NetBanking</string>
-    <key>CFBundleIdentifier</key><string>local.netbanking.sparkasse-helper</string>
-    <key>CFBundleName</key><string>NetBanking</string>
-    <key>CFBundleDisplayName</key><string>NetBanking Helper</string>
+    <key>CFBundleExecutable</key><string>ProKlik</string>
+    <key>CFBundleIdentifier</key><string>local.proklik.nlb-helper</string>
+    <key>CFBundleName</key><string>ProKlik</string>
+    <key>CFBundleDisplayName</key><string>ProKlik Helper</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>1.1</string>
     <key>CFBundleVersion</key><string>4</string>
@@ -63,28 +63,28 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
-swiftc -O -o "$APP/Contents/MacOS/NetBanking" main.swift \
+swiftc -O -o "$APP/Contents/MacOS/ProKlik" main.swift \
     -framework AppKit -framework WebKit
-swiftc -O -o "$APP/Contents/MacOS/nb-cert" nb-cert.swift
+swiftc -O -o "$APP/Contents/MacOS/proklik-cert" proklik-cert.swift
 codesign -s - --force "$APP"
 
-# ---- package: installs NetBanking.app into /Applications ----
+# ---- package: installs ProKlik.app into /Applications ----
 STAGE=$(mktemp -d)
-cp -R "$APP" "$STAGE/NetBanking.app"
+cp -R "$APP" "$STAGE/ProKlik.app"
 mkdir -p "$(pwd)/dist"
 pkgbuild --root "$STAGE" \
          --install-location /Applications \
-         --identifier local.netbanking.sparkasse-helper \
+         --identifier local.proklik.nlb-helper \
          --version 1.1 \
          --no-relocate \
-         dist/NetBanking-1.1.pkg 2>&1 | tail -2
+         dist/ProKlik-1.1.pkg 2>&1 | tail -2
 
 # ---- also build a drag-and-drop DMG (no installer, no admin password) ----
 DMGSTAGE=$(mktemp -d)
 ln -s /Applications "$DMGSTAGE/Applications"
-cp -R "$APP" "$DMGSTAGE/NetBanking.app"
-hdiutil create -volname "NetBanking" -srcfolder "$DMGSTAGE" -ov -quiet \
-    dist/NetBanking-1.1.dmg
+cp -R "$APP" "$DMGSTAGE/ProKlik.app"
+hdiutil create -volname "ProKlik" -srcfolder "$DMGSTAGE" -ov -quiet \
+    dist/ProKlik-1.1.dmg
 
-echo "Built $APP (self-contained) + dist/NetBanking-1.1.pkg + dist/NetBanking-1.1.dmg"
+echo "Built $APP (self-contained) + dist/ProKlik-1.1.pkg + dist/ProKlik-1.1.dmg"
 echo "Other users still need SafeNet Authentication Client for macOS (token middleware)."

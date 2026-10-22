@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Native macOS login for Sparkasse Bank netbanking.mk (Stopanstvo / business portal).
+Native macOS login for NLB ProKlik (NLB corporate e-banking).
 
 Replaces the retired Java applet (PKCS11Signer): signs the login challenge
 with the qualified certificate on the Gemalto IDPrime token via PKCS#11,
-then POSTs to /Stopanstvo/Account/LoginSmartCard exactly as the applet did.
+then POSTs to /Account/LoginSmartCard exactly as the applet did.
 
-  python3 netbank_login.py --test     sign a self-test string using the token (offline)
-  python3 netbank_login.py --login    perform the real login and report the result
+  python3 proklik_login.py --test     sign a self-test string using the token (offline)
+  python3 proklik_login.py --login    perform the real login and report the result
 
 The PIN is prompted and used only locally; the signed login POST does NOT
 contain the PIN (same as the original applet).
@@ -26,24 +26,24 @@ import urllib.request
 import http.cookiejar
 import getpass
 
-BANK_URL = "https://www.netbanking.mk/Stopanstvo/Account/Login"
-LOGIN_POST_URL = "https://www.netbanking.mk/Stopanstvo/Account/LoginSmartCard"
+BANK_URL = "https://www.nlbproklik.com.mk/LoginModule/LoginUP.aspx?ReturnUrl=%2fdefault.aspx"
+LOGIN_POST_URL = "https://www.nlbproklik.com.mk/Account/LoginSmartCard"
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
       "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15")
 
-PKCS11_TOOL = os.environ.get("NB_PKCS11_TOOL", "pkcs11-tool")
+PKCS11_TOOL = os.environ.get("PROKLIK_PKCS11_TOOL", "pkcs11-tool")
 # Candidate token middlewares, probed in order (first one that sees a token wins).
 PKCS11_MODULE_CANDIDATES = [
-    os.environ.get("NB_PKCS11_MODULE"),
+    os.environ.get("PROKLIK_PKCS11_MODULE"),
     "/usr/local/lib/libeTPkcs11.dylib",           # SafeNet Authentication Client
     "/usr/local/lib/libIDPrimePKCS11.dylib",      # Gemalto IDPrime
     "/usr/local/lib/libClassicClientPKCS11.dylib",# Gemalto Classic Client
 ]
 # The signer's leaf certificate is identified by having a personal serialNumber=
-# attribute and no CA/qualified-issuer markers. Override via NB_CERT_SUBJECT
+# attribute and no CA/qualified-issuer markers. Override via PROKLIK_CERT_SUBJECT
 # (comma-separated, UTF-8) if your CA issues differently, e.g. "SURNAME,ISSUER-CA".
 CERT_SUBJECT_MATCH = os.environ.get(
-    "NB_CERT_SUBJECT", "serialNumber=,CA")
+    "PROKLIK_CERT_SUBJECT", "serialNumber=,CA")
 
 
 def _is_leaf(cert_der: bytes) -> bool:
@@ -64,7 +64,7 @@ SHA1_DIGESTINFO_PREFIX = bytes([
     0x05, 0x00, 0x04, 0x14,
 ])
 
-TMP = "/tmp/netbank_work"
+TMP = "/tmp/proklik_work"
 os.makedirs(TMP, exist_ok=True)
 
 
@@ -85,7 +85,7 @@ def detect_module() -> str:
                 print(f"Middleware: {cand}")
             return cand
     sys.exit("No PKCS#11 middleware sees a token. Plug in the USB token; if it stays "
-             "unseen, install SafeNet Authentication Client for macOS or set NB_PKCS11_MODULE.")
+             "unseen, install SafeNet Authentication Client for macOS or set PROKLIK_PKCS11_MODULE.")
 
 
 def get_leaf_cert() -> bytes:
@@ -110,7 +110,7 @@ def get_leaf_cert() -> bytes:
             except Exception:
                 continue
     sys.exit("Signer leaf certificate not found on token "
-             "(tweak NB_CERT_SUBJECT if your issuer differs).")
+             "(tweak PROKLIK_CERT_SUBJECT if your issuer differs).")
 
 
 def sign_token(pin: str, message: bytes, mechanism: str = "SHA256-RSA-PKCS") -> bytes:
@@ -157,7 +157,7 @@ def login_attempt(opener, challenge: str, cert: bytes, sig: bytes,
                      headers={"X-Requested-With": "XMLHttpRequest",
                               "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                               "Referer": BANK_URL,
-                              "Origin": "https://www.netbanking.mk",
+                              "Origin": "https://www.nlbproklik.com.mk",
                               "Accept": "*/*"})
     raw = resp.read().decode("utf-8", "replace")
     try:
@@ -302,7 +302,7 @@ def do_login():
                      headers={"X-Requested-With": "XMLHttpRequest",
                               "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                               "Referer": BANK_URL,
-                              "Origin": "https://www.netbanking.mk",
+                              "Origin": "https://www.nlbproklik.com.mk",
                               "Accept": "*/*"})
     raw = resp.read().decode("utf-8", "replace")
     try:
@@ -330,7 +330,7 @@ def do_login():
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Native netbanking.mk login via USB token")
+    ap = argparse.ArgumentParser(description="Native nlbproklik.com.mk login via USB token")
     ap.add_argument("--test", action="store_true", help="token signing self-test (offline)")
     ap.add_argument("--login", action="store_true", help="real login against the bank")
     ap.add_argument("--probe", action="store_true", help="try format variants against the bank")

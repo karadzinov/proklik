@@ -1,115 +1,106 @@
-# netbanking — native macOS login for Sparkasse mk business e-banking
+# ProKlik — native macOS login for NLB corporate e-banking
 
-**What is this for?** Sparkasse Bank Macedonia's business internet banking
-([netbanking.mk/Stopanstvo](https://www.netbanking.mk/Stopanstvo/Account/Login),
-Asseco iBank) cannot be accessed from macOS: its login requires the
-**"Aseba Crypto Signer"**, a Windows-only native component distributed as an
-`.msi` (plus a retired Java-applet fallback). If you only use a Mac, that meant
-keeping a Windows VM (Parallels) just for the bank.
+**What is this for?** NLB Macedonia's corporate internet banking
+([ProKlik](https://www.nlbproklik.com.mk/LoginModule/LoginUP.aspx?ReturnUrl=%2fdefault.aspx))
+uses the same Windows-only **Aseba Crypto Signer** component as several Asseco/Asseco SEE
+banking portals. This project replaces that component with a native macOS implementation:
+the portal runs in a small WebKit window, and signing operations go directly to your
+**USB certificate token** (Gemalto IDPrime MD, SafeNet eToken, or Gemalto Classic).
 
-This project replaces that missing signer with a **native macOS implementation**:
-the portal runs in a small self-contained browser window, and every signing
-operation goes straight to your **USB certificate token** (Gemalto IDPrime MD /
-SafeNet eToken, used by the KIBS qualified-certificate infrastructure).
+The implementation is based on the proven native signing flow from the original
+`netbanking` project and is configured for ProKlik's URLs and branding.
 
 ## How it works
 
-1. The login page presents a one-time challenge (`TextToSign`, a GUID).
-2. The app signs it with the private key on the token and POSTs
-   `Certificate` (base64 DER of your qualified certificate) +
-   `Signature` (base64 of **SHA1withRSA** over the challenge) to
-   `/Stopanstvo/Account/LoginSmartCard` — byte-compatible with what the
-   retired Java applet (`PKCS11Signer`) produced. *(The page's JavaScript asks
-   the signer for SHA-256, but the server still verifies SHA-1 — confirmed
-   against the decompiled 2014 applet.)*
-3. The server answers with a JSON handshake (`UserAuthenticated`, session key,
-   redirect) and you land on the Dashboard.
-4. The **PIN is used only locally** to unlock the token — it is never sent to
-   the bank (exactly like the original signer/applet).
+1. ProKlik presents a one-time challenge (`TextToSign`).
+2. The app signs it with the private key on the token and returns the certificate and
+   signature to the portal's JavaScript.
+3. ProKlik posts the values to `/Account/LoginSmartCard` and returns its normal JSON
+   login handshake/redirect.
+4. The token PIN is used only locally to unlock the token. It is never sent to NLB.
 
-The gem: no Java, no Windows, no browser extension. The app injects the
-`TokenSigning` JS API the portal calls and implements it natively, so all
-signing screens (login, payment orders) route to the USB token.
+The native bridge implements the same `window.TokenSigning` JavaScript API expected by
+ProKlik's signer checks. No Java, Windows, or browser extension is required.
 
-## Requirements & installation for new users
+## Requirements
 
-1. **Plug the token** in (USB reader + token, or the all-in-one USB token key).
-2. **Install the token middleware** — the one piece this package cannot ship
-   (it's licensed middleware and must come through your bank/CA):
-   install **SafeNet Authentication Client for macOS** (covers SafeNet eToken
-   and Gemalto IDPrime MD cards; free, from Thales SafeNet support or from
-   your bank's/KIBS support portal — Sparkasse mk corporate customers can find
-   it via corporatenetbanking@sparkasse.mk). After macOS updates, re-check
-   that `/usr/local/lib/libeTPkcs11.dylib` still exists.
-3. **Install the app** — download from the
-   [Releases page](https://github.com/karadzinov/netbanking/releases/latest)
-   (**Code ▾** sidebar → *Releases*; the files are NOT in the repo file list), either:
-   - [NetBanking-1.1.dmg](https://github.com/karadzinov/netbanking/releases/download/v1.1/NetBanking-1.1.dmg)
-     (recommended): open it, drag **NetBanking.app** onto the Applications
-     folder icon — done. No installer, no admin password.
-   - [NetBanking-1.1.pkg](https://github.com/karadzinov/netbanking/releases/download/v1.1/NetBanking-1.1.pkg):
-     double-click and step through the installer (installs to /Applications
-     via the usual wizard).
-   The app is self-contained (its own signer tool, certificate reader and
-   middleware auto-detection — SafeNet eToken, IDPrime, Gemalto Classic are
-   probed automatically; no Homebrew needed).
-   *First launch only:* if macOS says it can't verify the app, right-click
-   **NetBanking** → **Open → Open** (or System Settings → Privacy & Security →
-   "Open Anyway"). This is expected for un-notarized apps; accept once and it
-   opens normally afterwards.
-4. Open **NetBanking**, enter your token PIN once (kept in RAM, never sent
-   anywhere), then log in with **Најава**.
+- macOS 13 or newer
+- A ProKlik USB certificate token
+- Token middleware for macOS — normally **SafeNet Authentication Client** from Thales
+  or your bank/CA. Common supported modules are probed automatically:
+  - `/usr/local/lib/libeTPkcs11.dylib`
+  - `/usr/local/lib/libIDPrimePKCS11.dylib`
+  - `/usr/local/lib/libClassicClientPKCS11.dylib`
+- To build from source: Xcode Swift compiler, Homebrew OpenSC, OpenSSL, and standard
+  packaging tools (`pkgbuild`, `hdiutil`, `codesign`)
 
-For developers / headless use, build from source:
-
-## Build & install (from source)
+## Build and install
 
 ```bash
-cd netbanking
-
-# CLI helper (python stdlib + python-pkcs11; needs brew install opensc)
-python3 -m venv venv && venv/bin/pip install -r requirements.txt
-
-# Test that the token signs on macOS (prompts for PIN; completely offline)
-./venv/bin/python netbank_login.py --test
-
-# Headless login against the real portal (prints the authenticated URL)
-./venv/bin/python netbank_login.py --login
-
-# The GUI app
-cd app && ./build.sh            # → NetBanking.app
-open NetBanking.app             # enter PIN once, then log in as usual
-
-# Installer package (installs the app to /Applications)
-# produced at dist/NetBanking-1.0.pkg by the same build.sh
+git clone https://github.com/karadzinov/proklik.git
+cd proklik
+cd app
+./build.sh
+open ProKlik.app
 ```
 
-### The token cannot be read by the app?
+The script creates:
 
-The IDPrime key is flagged *always-authenticate* — it must get a
-context-specific login right before each signature. In-process PKCS#11 clients
-often fail this, so everything goes through `pkcs11-tool`, which handles it
-correctly. Both the app and the CLI shell out to it on purpose.
+- `app/ProKlik.app`
+- `app/dist/ProKlik-1.1.pkg`
+- `app/dist/ProKlik-1.1.dmg`
+
+The app is ad-hoc signed. On first launch, macOS may require
+**right-click → Open → Open** once, or **System Settings → Privacy & Security → Open Anyway**.
+
+## CLI helper
+
+```bash
+python3 -m venv venv
+venv/bin/pip install -r requirements.txt
+
+# Offline signing self-test (prompts for the token PIN)
+./venv/bin/python proklik_login.py --test
+
+# Print the selected leaf certificate as base64 DER
+./venv/bin/python proklik_login.py --cert
+
+# Headless login experiment (prompts for the token PIN)
+./venv/bin/python proklik_login.py --login
+```
+
+The GUI app is the supported path. The CLI is useful for diagnosing the token and the
+server response.
+
+## Environment overrides
+
+| Variable | Purpose |
+|---|---|
+| `PROKLIK_PKCS11_TOOL` | Path to `pkcs11-tool` |
+| `PROKLIK_PKCS11_MODULE` | Path to a specific PKCS#11 module |
+| `PROKLIK_CERT_SUBJECT` | Comma-separated include/exclude subject keywords for leaf-certificate selection |
 
 ## Troubleshooting
 
-| Symptom | Cause |
-|---|---|
-| Portal shows "install Java" page | The bank serves a legacy page to Safari-like user agents; the app sends a Chrome UA. A plain browser on macOS cannot work — use the app. |
-| `UserNotLoggedIn` from python-pkcs11 | Always-authenticate key; use `pkcs11-tool` (this repo does). |
-| Card refuses `SHA1-RSA-PKCS` signing | Verify-only on newer IDPrime cards; the CLI builds the SHA-1 DigestInfo and signs with raw `RSA-PKCS` instead. |
-| Server returns the full HTML shell instead of the JSON login handshake | A `Function` field was sent; the verified server contract has none. |
-| Token error / blocked | PIN attempts: after 3 wrong PINs the token locks; contact corporate support (corporatenetbanking@sparkasse.mk, +389 46 261-000). |
+- **No PKCS#11 middleware sees a token** — plug in the reader/token and install the
+  token middleware supplied by NLB or KIBS.
+- **Always-authenticate key errors** — the project intentionally uses `pkcs11-tool`
+  for signing because it handles context-specific login correctly.
+- **Wrong PIN / token locked** — repeated incorrect PIN attempts can lock the token.
+  Contact NLB support (`ebank@nlb.mk` or 02/5100-440).
+- **Portal cannot see the signer** — use the bundled ProKlik app, not a normal browser;
+  the app injects the signer API and uses a Chrome user agent as ProKlik expects.
 
 ## Security notes
 
 - The PIN is prompted once per app launch and kept in memory only.
-- Your private key never leaves the token; only challenge signatures do.
-- This talks only to `www.netbanking.mk` over TLS.
+- The private key never leaves the token; only signatures and the public certificate
+  are returned to ProKlik.
+- The app talks only to `www.nlbproklik.com.mk` over TLS.
+- Token middleware remains licensed software and is not bundled with this project.
 
 ## Disclaimer
 
-Personal utility, not affiliated with or endorsed by Sparkasse Bank Macedonia,
-Asseco SEE, KIBS AD Skopje, or any bank. The bank officially supports business
-e-banking via the S-Banka mobile app (S-Token) and Windows signers — if you can
-enroll in those, prefer them. Use at your own risk.
+This is a personal utility for macOS access to a bank portal. It is not affiliated
+with or endorsed by NLB Macedonia, Asseco SEE, KIBS AD Skopje, Thales, or Gemalto.
+Use official supported channels whenever available. Use at your own risk.
