@@ -1,0 +1,18 @@
+ProKlik needs SafeNet Authentication Client because that middleware provides the
+PKCS#11 module used to communicate with the USB certificate token.
+
+The ProKlik DMG cannot legally redistribute the Thales installer. It includes:
+
+  • “Install SafeNet Authentication Client.command”
+    Downloads the publicly hosted SafeNet 10.9 macOS package, verifies it,
+    extracts it, and opens the official installer DMG.
+
+  • “SafeNet Authentication Client Download.webloc”
+    Opens the direct download page/file if you prefer to download manually.
+
+Install “SafeNet Authentication Client 10.9.pkg” from the opened disk image.
+After installation, reopen ProKlik with the token plugged in.
+
+If macOS blocks the helper command, right-click it and choose Open → Open.
+
+SafeNet Authentication Client 10.9 supports Apple Silicon and Intel Macs.

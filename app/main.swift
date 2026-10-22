@@ -86,9 +86,11 @@ func resolveTools() throws {
             return
         }
     }
-    throw fail("No PKCS#11 middleware sees a token.\nPlug in the USB token; if it still "
-             + "isn't found, install the SafeNet Authentication Client (or your token's "
-             + "macOS driver) or set PROKLIK_PKCS11_MODULE.")
+    throw fail("No PKCS#11 middleware sees a token.\n"
+             + "Plug in the USB token and install SafeNet Authentication Client "
+             + "using the helper included in the ProKlik disk image. "
+             + "If your bank supplied different middleware, set PROKLIK_PKCS11_MODULE "
+             + "to its PKCS#11 library path.")
 }
 
 // MARK: - Token leaf certificate via the bundled proklik-cert CLI

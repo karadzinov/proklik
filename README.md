@@ -36,17 +36,23 @@ ProKlik's signer checks. No Java, Windows, or browser extension is required.
 
 ## Download and install
 
-ProKlik 1.2 is a **universal macOS app** and supports both Apple Silicon (`arm64`) and Intel (`x86_64`) Macs. The recommended way to install it is the drag-and-drop disk image:
+ProKlik 1.3 is a **universal macOS app** and supports both Apple Silicon (`arm64`) and Intel (`x86_64`) Macs. The recommended way to install it is the drag-and-drop disk image:
 
-- [ProKlik-1.2.dmg](https://github.com/karadzinov/proklik/releases/download/v1.2/ProKlik-1.2.dmg) — open it and drag **ProKlik.app** to **Applications**
-- [ProKlik-1.2.pkg](https://github.com/karadzinov/proklik/releases/download/v1.2/ProKlik-1.2.pkg) — optional installer package
+- [ProKlik-1.3.dmg](https://github.com/karadzinov/proklik/releases/download/v1.3/ProKlik-1.3.dmg) — open it and drag **ProKlik.app** to **Applications**
+- [ProKlik-1.3.pkg](https://github.com/karadzinov/proklik/releases/download/v1.3/ProKlik-1.3.pkg) — optional installer package
 
 SHA-256 checksums:
 
 ```text
-3563d1ef90d06a817ee63a7086d78380b236c17122f94d3c709277b0db1cd304  ProKlik-1.2.dmg
-dfe3bf6d5dfc04e572125040bb5b7aaa17c47d8a49d8444fb92562efc65c0a3d  ProKlik-1.2.pkg
+377ec79d33d5224d0890d91378222d3949e627b1ab0ae93edfd48dc61499e3ec  ProKlik-1.3.dmg
+1b8aff887de362036da5f92257e36a078b36425a9f276ce18c859b105a65036f  ProKlik-1.3.pkg
 ```
+
+The DMG also includes **Install SafeNet Authentication Client.command**. ProKlik cannot
+legally redistribute the licensed Thales middleware itself, so this helper downloads the
+public SafeNet 10.9 macOS package, verifies its checksum, extracts it, and opens the
+official installer. Install SafeNet Authentication Client first if your Mac does not
+already have token middleware.
 
 After installation, plug in your ProKlik token, open **ProKlik**, enter the token PIN,
 and use the portal's **Најава** button.
@@ -65,8 +71,8 @@ cd proklik/app
 The script creates:
 
 - `app/ProKlik.app`
-- `app/dist/ProKlik-1.2.pkg`
-- `app/dist/ProKlik-1.2.dmg`
+- `app/dist/ProKlik-1.3.pkg`
+- `app/dist/ProKlik-1.3.dmg`
 
 ## CLI helper
 

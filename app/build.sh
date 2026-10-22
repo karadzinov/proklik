@@ -2,8 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-VERSION=1.2
-BUILD=5
+VERSION=1.3
+BUILD=6
 APP=ProKlik.app
 TOOLDIR="$APP/Contents/MacOS/tools"
 
@@ -67,8 +67,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
     <key>CFBundleName</key><string>ProKlik</string>
     <key>CFBundleDisplayName</key><string>ProKlik Helper</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>1.2</string>
-    <key>CFBundleVersion</key><string>5</string>
+    <key>CFBundleShortVersionString</key><string>1.3</string>
+    <key>CFBundleVersion</key><string>6</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>LSMinimumSystemVersion</key><string>13.0</string>
     <key>NSPrincipalClass</key><string>NSApplication</string>
@@ -108,6 +108,8 @@ pkgbuild --root "$STAGE" \
 DMGSTAGE=$(mktemp -d)
 ln -s /Applications "$DMGSTAGE/Applications"
 cp -R "$APP" "$DMGSTAGE/ProKlik.app"
+cp support/* "$DMGSTAGE/"
+chmod +x "$DMGSTAGE/Install SafeNet Authentication Client.command"
 hdiutil create -volname "ProKlik" -srcfolder "$DMGSTAGE" -ov -quiet \
     "dist/ProKlik-$VERSION.dmg"
 
