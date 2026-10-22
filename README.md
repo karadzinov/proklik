@@ -34,14 +34,32 @@ ProKlik's signer checks. No Java, Windows, or browser extension is required.
 - To build from source: Xcode Swift compiler, Homebrew OpenSC, OpenSSL, and standard
   packaging tools (`pkgbuild`, `hdiutil`, `codesign`)
 
-## Build and install
+## Download and install
+
+The recommended way is the drag-and-drop disk image:
+
+- [ProKlik-1.1.dmg](https://github.com/karadzinov/proklik/releases/download/v1.1/ProKlik-1.1.dmg) — open it and drag **ProKlik.app** to **Applications**
+- [ProKlik-1.1.pkg](https://github.com/karadzinov/proklik/releases/download/v1.1/ProKlik-1.1.pkg) — optional installer package
+
+SHA-256 checksums:
+
+```text
+2227e0fac30f259832c9d2607f686ff1f95a2d622603745a666889d6c04569bc  ProKlik-1.1.dmg
+320b4a892427b5ba3a736a69bf8ccbc60e7b7fda61ff7e5cd304da03953172ec  ProKlik-1.1.pkg
+```
+
+After installation, plug in your ProKlik token, open **ProKlik**, enter the token PIN,
+and use the portal's **Најава** button.
+
+The app is ad-hoc signed. On first launch, macOS may require
+**right-click → Open → Open** once, or **System Settings → Privacy & Security → Open Anyway**.
+
+## Build from source
 
 ```bash
 git clone https://github.com/karadzinov/proklik.git
-cd proklik
-cd app
+cd proklik/app
 ./build.sh
-open ProKlik.app
 ```
 
 The script creates:
@@ -49,9 +67,6 @@ The script creates:
 - `app/ProKlik.app`
 - `app/dist/ProKlik-1.1.pkg`
 - `app/dist/ProKlik-1.1.dmg`
-
-The app is ad-hoc signed. On first launch, macOS may require
-**right-click → Open → Open** once, or **System Settings → Privacy & Security → Open Anyway**.
 
 ## CLI helper
 
