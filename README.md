@@ -36,16 +36,16 @@ ProKlik's signer checks. No Java, Windows, or browser extension is required.
 
 ## Download and install
 
-The recommended way is the drag-and-drop disk image:
+ProKlik 1.2 is a **universal macOS app** and supports both Apple Silicon (`arm64`) and Intel (`x86_64`) Macs. The recommended way to install it is the drag-and-drop disk image:
 
-- [ProKlik-1.1.dmg](https://github.com/karadzinov/proklik/releases/download/v1.1/ProKlik-1.1.dmg) — open it and drag **ProKlik.app** to **Applications**
-- [ProKlik-1.1.pkg](https://github.com/karadzinov/proklik/releases/download/v1.1/ProKlik-1.1.pkg) — optional installer package
+- [ProKlik-1.2.dmg](https://github.com/karadzinov/proklik/releases/download/v1.2/ProKlik-1.2.dmg) — open it and drag **ProKlik.app** to **Applications**
+- [ProKlik-1.2.pkg](https://github.com/karadzinov/proklik/releases/download/v1.2/ProKlik-1.2.pkg) — optional installer package
 
 SHA-256 checksums:
 
 ```text
-2227e0fac30f259832c9d2607f686ff1f95a2d622603745a666889d6c04569bc  ProKlik-1.1.dmg
-320b4a892427b5ba3a736a69bf8ccbc60e7b7fda61ff7e5cd304da03953172ec  ProKlik-1.1.pkg
+3563d1ef90d06a817ee63a7086d78380b236c17122f94d3c709277b0db1cd304  ProKlik-1.2.dmg
+dfe3bf6d5dfc04e572125040bb5b7aaa17c47d8a49d8444fb92562efc65c0a3d  ProKlik-1.2.pkg
 ```
 
 After installation, plug in your ProKlik token, open **ProKlik**, enter the token PIN,
@@ -65,8 +65,8 @@ cd proklik/app
 The script creates:
 
 - `app/ProKlik.app`
-- `app/dist/ProKlik-1.1.pkg`
-- `app/dist/ProKlik-1.1.dmg`
+- `app/dist/ProKlik-1.2.pkg`
+- `app/dist/ProKlik-1.2.dmg`
 
 ## CLI helper
 

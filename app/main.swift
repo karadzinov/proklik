@@ -40,14 +40,27 @@ let MODULE_CANDIDATES = [
 
 func bundledToolsDir() -> URL {
     let exec = Bundle.main.executableURL!.deletingLastPathComponent()
-    return exec.appendingPathComponent("tools")
+#if arch(arm64)
+    let arch = "arm64"
+#elseif arch(x86_64)
+    let arch = "x86_64"
+#else
+    #error("Unsupported CPU architecture")
+#endif
+    return exec.appendingPathComponent("tools").appendingPathComponent(arch)
 }
 
 func resolveTools() throws {
-    // pkcs11-tool: prefer the bundled copy, fall back to Homebrew.
+    // pkcs11-tool: prefer the architecture-specific bundled copy, then fall back
+    // to the Homebrew path used on that architecture.
     let bundled = bundledToolsDir().appendingPathComponent("pkcs11-tool")
+#if arch(arm64)
+    let fallbackTool = "/opt/homebrew/bin/pkcs11-tool"
+#elseif arch(x86_64)
+    let fallbackTool = "/usr/local/bin/pkcs11-tool"
+#endif
     pkcs11ToolPath = FileManager.default.fileExists(atPath: bundled.path)
-        ? bundled.path : "/opt/homebrew/bin/pkcs11-tool"
+        ? bundled.path : fallbackTool
     guard FileManager.default.fileExists(atPath: pkcs11ToolPath) else {
         throw fail("pkcs11-tool not found (install with:  brew install opensc)")
     }
